@@ -3,5 +3,5 @@ const testing = std.testing;
 const print = std.debug.print;
 
 pub fn hello(name: []const u8) void {
-    print("{}\n", .{name});
+    print("{s}\n", .{name});
 }
