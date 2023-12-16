@@ -9,7 +9,9 @@ pub fn build(b: *std.Build) void {
     const optimize = b.standardOptimizeOption(.{});
     _ = optimize;
 
-    _ = b.addModule("dummy", .{ .source_file = .{ .path = "src/root.zig" } });
+    _ = b.addModule("all", .{ .source_file = .{ .path = "src/root.zig" } });
+    _ = b.addModule("funny", .{ .source_file = .{ .path = "src/funny.zig" } });
+    _ = b.addModule("hello", .{ .source_file = .{ .path = "src/hello.zig" } });
 
     // const lib = b.addStaticLibrary(.{
     //     .name = "dummy",
