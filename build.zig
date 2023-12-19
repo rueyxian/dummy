@@ -32,7 +32,7 @@ pub fn build(b: *std.Build) void {
     lib_hello.addModule("test_zon", dep_test_zon.module("test-zon"));
 
     const lib_funny = b.addStaticLibrary(.{
-        .name = "hello",
+        .name = "funny",
         .root_source_file = .{ .path = "src/funny.zig" },
         .target = target,
         .optimize = optimize,
