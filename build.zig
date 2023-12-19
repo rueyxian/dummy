@@ -1,45 +1,62 @@
 const std = @import("std");
+const Build = std.Build;
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-    _ = target;
     const optimize = b.standardOptimizeOption(.{});
-    _ = optimize;
 
-    _ = b.addModule("all", .{ .source_file = .{ .path = "src/root.zig" } });
+    const dep_test_zon = b.dependency("test_zon", .{
+        .target = target,
+        .optimize = optimize,
+    });
+
+    // _ = b.addModule("test-zon", .{ .source_file = .{ .path = "src/root.zig" } });
     _ = b.addModule("funny", .{ .source_file = .{ .path = "src/funny.zig" } });
     _ = b.addModule("hello", .{ .source_file = .{ .path = "src/hello.zig" } });
 
-    // const lib = b.addStaticLibrary(.{
-    //     .name = "dummy",
-    //     // In this case the main source file is merely a path, however, in more
-    //     // complicated build scripts, this could be a generated file.
-    //     .root_source_file = .{ .path = "src/root.zig" },
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
+    const mod_funny = b.createModule(.{ .source_file = .{ .path = "src/funny.zig" } });
+    const mod_hello = b.createModule(.{ .source_file = .{ .path = "src/hello.zig" } });
+    _ = mod_funny;
+    _ = mod_hello;
 
-    // // This declares intent for the library to be installed into the standard
-    // // location when the user invokes the "install" step (the default step when
-    // // running `zig build`).
-    // b.installArtifact(lib);
+    const lib_hello = b.addStaticLibrary(.{
+        .name = "hello",
+        .root_source_file = .{ .path = "src/hello.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    b.installArtifact(lib_hello);
+    lib_hello.addModule("test_zon", dep_test_zon.module("test-zon"));
 
-    // // Creates a step for unit testing. This only builds the test executable
-    // // but does not run it.
-    // const lib_unit_tests = b.addTest(.{
-    //     .root_source_file = .{ .path = "src/root.zig" },
-    //     .target = target,
-    //     .optimize = optimize,
-    // });
+    const lib_funny = b.addStaticLibrary(.{
+        .name = "hello",
+        .root_source_file = .{ .path = "src/funny.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    b.installArtifact(lib_funny);
 
-    // const run_lib_unit_tests = b.addRunArtifact(lib_unit_tests);
+    const unit_tests_hello = b.addTest(.{
+        .root_source_file = .{ .path = "src/hello.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    unit_tests_hello.addModule("test_zon", dep_test_zon.module("test-zon"));
 
-    // // Similar to creating the run step earlier, this exposes a `test` step to
-    // // the `zig build --help` menu, providing a way for the user to request
-    // // running the unit tests.
-    // const test_step = b.step("test", "Run unit tests");
-    // test_step.dependOn(&run_lib_unit_tests.step);
+    const unit_tests_funny = b.addTest(.{
+        .root_source_file = .{ .path = "src/funny.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const step_tests = b.step("test", "Run unit tests");
+
+    const run_unit_tests_hello = b.addRunArtifact(unit_tests_hello);
+    const run_unit_tests_funny = b.addRunArtifact(unit_tests_funny);
+
+    step_tests.dependOn(&run_unit_tests_hello.step);
+    step_tests.dependOn(&run_unit_tests_funny.step);
 }
